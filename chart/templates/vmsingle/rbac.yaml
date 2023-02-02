@@ -1,0 +1,37 @@
+{{- if .Values.selfMonitor.vmsingle -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "prometheus-benchmark.fullname" . }}-vmsingle
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "prometheus-benchmark.labels" . | nindent 4 }}
+rules:
+- apiGroups: ['']
+  resources: ['pods']
+  verbs: ['list','get','watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "prometheus-benchmark.fullname" . }}-vmsingle
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "prometheus-benchmark.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "prometheus-benchmark.fullname" . }}-vmsingle
+subjects:
+- kind: ServiceAccount
+  name: {{ include "prometheus-benchmark.fullname" . }}-vmsingle
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "prometheus-benchmark.fullname" . }}-vmsingle
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "prometheus-benchmark.labels" . | nindent 4 }}
+{{- end -}}

@@ -41,10 +41,9 @@ spec:
       - name: vmagent
         resources:
           requests:
-            cpu: {{ $.Values.writeReplicaCPU }}
+            cpu: 0.5
             memory: {{ $.Values.writeReplicaMem }}
           limits:
-            cpu: {{ $.Values.writeReplicaCPU }}
             memory: {{ $.Values.writeReplicaMem }}
         image: "victoriametrics/vmagent:{{ $.Values.vmtag }}"
         args:

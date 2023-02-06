@@ -1,4 +1,5 @@
 include services/vmagent-config-updater/Makefile
+include services/stress-querier/Makefile
 
 # k8s namespace for installing the chart
 # It can be overriden via NAMESPACE environment variable

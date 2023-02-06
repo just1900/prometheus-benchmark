@@ -7,14 +7,14 @@ selfMonitor:
   podMonitor: true
 # nodeSelector is an optional node selector for placing benchmark pods.
 nodeSelector:
-  failure-domain.beta.kubernetes.io/zone: us-west1-a
+  topology.kubernetes.io/zone: us-west1-a
 
 # targetsCount defines the number of nodeexporter instances to scrape by every benchmark pod.
 # This option allows to configure the number of active time series to push to remoteStorages.
 # Every nodeexporter exposes around 1230 unique metrics, so when targetsCount
 # is set to 1000, then the benchmark generates around 1230*1000=1.23M active time series.
 # See also writeReplicas and writeURLReplicas options.
-targetsCount: 2500
+targetsCount: 2000
 
 # scrapeInterval defines how frequently to scrape nodeexporter targets.
 # This option allows to configure data ingestion rate per every remoteStorages.
@@ -35,7 +35,7 @@ queryInterval: 15s
 # For example, if scrapeConfigUpdatePercent is set to 1 for targetsCount=1000,
 # then around 10 targets gets updated labels on every scrape config update.
 # This generates around 1230*10=12300 new time series every scrapeConfigUpdateInterval.
-scrapeConfigUpdatePercent: 0.5
+scrapeConfigUpdatePercent: 1
 
 # scrapeConfigUpdateInterval specifies how frequently to update labels
 # across scrapeConfigUpdatePercent nodeexporter targets.
@@ -62,7 +62,7 @@ writeReplicas: 3
 
 # writeReplicaMem is the memory limit per each pod writer.
 # See writeReplicas option.
-writeReplicaMem: "7Gi"
+writeReplicaMem: "10Gi"
 
 # remoteStorages contains a named list of Prometheus-compatible systems to test.
 # These systems must support data ingestion via Prometheus remote_write protocol.

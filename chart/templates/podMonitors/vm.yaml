@@ -6,7 +6,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/instance: prom-bench
+      {{- include "prometheus-benchmark.labels" $ | nindent 6 }}
       job: vmagent
   podMetricsEndpoints:
   - port: metrics
@@ -18,7 +18,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/instance: prom-bench
+      {{- include "prometheus-benchmark.labels" $ | nindent 6 }}
       job: vmalert
   podMetricsEndpoints:
   - port: metrics

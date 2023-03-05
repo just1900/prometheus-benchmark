@@ -1,14 +1,15 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	flag "github.com/spf13/pflag"
 	"gopkg.in/yaml.v2"
 )
 
@@ -16,6 +17,7 @@ var (
 	listenAddr                 = flag.String("httpListenAddr", ":8436", "TCP address for incoming HTTP requests")
 	targetsCount               = flag.Int("targetsCount", 100, "The number of scrape targets to return from -httpListenAddr. Each target has the same address defined by -targetAddr")
 	targetAddr                 = flag.String("targetAddr", "demo.robustperception.io:9090", "Address with port to use as target address the scrape config returned from -httpListenAddr")
+	targetAddrMap              = flag.StringToInt("targetAddrMap", map[string]int{}, "Map of address with port to use as target address the scrape config returned from -httpListenAddr")
 	scrapeInterval             = flag.Duration("scrapeInterval", time.Second*5, "The scrape_interval to set at the scrape config returned from -httpListenAddr")
 	scrapeConfigUpdateInterval = flag.Duration("scrapeConfigUpdateInterval", time.Minute*10, "The -scrapeConfigUpdatePercent scrape targets are updated in the scrape config returned from -httpListenAddr every -scrapeConfigUpdateInterval")
 	scrapeConfigUpdatePercent  = flag.Float64("scrapeConfigUpdatePercent", 1, "The -scrapeConfigUpdatePercent scrape targets are updated in the scrape config returned from -httpListenAddr ever -scrapeConfigUpdateInterval")
@@ -26,7 +28,8 @@ func main() {
 	flag.VisitAll(func(f *flag.Flag) {
 		log.Printf("-%s=%s", f.Name, f.Value)
 	})
-	c := newConfig(*targetsCount, *scrapeInterval, *targetAddr)
+	// c := newConfig(*targetsCount, *scrapeInterval, *targetAddr)
+	c := newMapConfig(*targetAddrMap, *scrapeInterval)
 	var cLock sync.Mutex
 	p := *scrapeConfigUpdatePercent / 100
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -69,6 +72,7 @@ func (c *config) marshalYAML() []byte {
 	return data
 }
 
+// nolint
 func newConfig(targetsCount int, scrapeInterval time.Duration, targetAddr string) *config {
 	scs := make([]*staticConfig, 0, targetsCount)
 	for i := 0; i < targetsCount; i++ {
@@ -90,6 +94,42 @@ func newConfig(targetsCount int, scrapeInterval time.Duration, targetAddr string
 				StaticConfigs: scs,
 			},
 		},
+	}
+}
+
+func newMapConfig(targetsMap map[string]int, scrapeInterval time.Duration) *config {
+	res := make([]*scrapeConfig, 0)
+	for targetAddr, targetsCount := range targetsMap {
+		scs := make([]*staticConfig, 0, targetsCount)
+		for i := 0; i < targetsCount; i++ {
+			scs = append(scs, &staticConfig{
+				Targets: []string{targetAddr},
+				Labels: map[string]string{
+					"instance": fmt.Sprintf("host-%d", i),
+					"revision": "r0",
+				},
+			})
+		}
+		JobName := "node_exporter"
+
+		if strings.Contains(targetAddr, "10080") {
+			JobName = "tidb"
+		} else if strings.Contains(targetAddr, "20180") {
+			JobName = "tikv"
+		} else if strings.Contains(targetAddr, "2379") {
+			JobName = "pd"
+		}
+		sc := &scrapeConfig{
+			JobName:       JobName,
+			StaticConfigs: scs,
+		}
+		res = append(res, sc)
+	}
+	return &config{
+		Global: globalConfig{
+			ScrapeInterval: scrapeInterval,
+		},
+		ScrapeConfigs: res,
 	}
 }
 

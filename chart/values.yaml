@@ -35,7 +35,7 @@ queryInterval: 15s
 # For example, if scrapeConfigUpdatePercent is set to 1 for targetsCount=1000,
 # then around 10 targets gets updated labels on every scrape config update.
 # This generates around 1230*10=12300 new time series every scrapeConfigUpdateInterval.
-scrapeConfigUpdatePercent: 1
+scrapeConfigUpdatePercent: 0.5
 
 # scrapeConfigUpdateInterval specifies how frequently to update labels
 # across scrapeConfigUpdatePercent nodeexporter targets.
@@ -43,7 +43,7 @@ scrapeConfigUpdatePercent: 1
 # For example, if scrapeConfigUpdateInterval is set to 10m for targetsCount=1000
 # and scrapeConfigUpdatePercent=1, then around 10 targets gets updated labels every 10 minutes.
 # This generates around 1230*10=12300 new time series every 10 minutes.
-scrapeConfigUpdateInterval: 15m
+scrapeConfigUpdateInterval: 30m
 
 # writeConcurrency is an optional number of concurrent tcp connections
 # for sending the scraped metrics to remoteStorage.writeURL.
@@ -58,11 +58,11 @@ writeConcurrency: 8
 # its own extra `replica` label attached to time series stored to remote storage.
 # This option is useful for scaling the writers horizontally.
 # See also writeURLReplicas option.
-writeReplicas: 3
+writeReplicas: 1
 
 # writeReplicaMem is the memory limit per each pod writer.
 # See writeReplicas option.
-writeReplicaMem: "10Gi"
+writeReplicaMem: "4Gi"
 
 # remoteStorages contains a named list of Prometheus-compatible systems to test.
 # These systems must support data ingestion via Prometheus remote_write protocol.
@@ -77,21 +77,23 @@ remoteStorages:
     # For example, the following urls may be used for testing VictoriaMetrics:
     # - http://<victoriametrics-addr>:8428/api/v1/write for single-node VictoriaMetrics
     # - http://<vminsert-addr>:8480/insert/0/prometheus/api/v1/write for cluster VictoriaMetrics
-    writeURL: "http://vminsert-vmcluster.observability.svc.cluster.local:8480/insert/0/prometheus/api/v1/write"
+    # writeURL: "http://vminsert-vmcluster.observability.svc.cluster.local:8480/insert/0/prometheus/api/v1/write"
+    writeURL: "http://vmsingle-vmsingle-benchmark.observability.svc.cluster.local:8429/api/v1/write"
     # writeURLReplicas is an optional number of writeURL replicas to send data to.
     # A unique `url_replica` label is added to every writeURL replica via `extra_label` query arg
     # in order to generate unique time series.
     # This option can be used for increasing the number of active time series
     # to send to writeURL. Please note, `extra_label` feature is supported only by VictoriaMetrics servers.
     # See also writeReplicas option.
-    writeURLReplicas: 2
+    writeURLReplicas: 1
     # readURL is an optional url when query performance needs to be tested.
     # The query performance is tested by sending alerting queries from files/alerts.yaml
     # to readURL.
     # For example, the following urls may be used for testing query performance:
     # - http://<victoriametrics-addr>:8428/ for single-node VictoriaMetrics
     # - http://<vmselect-addr>:8481/select/0/prometheus/ for cluster VictoriaMetrics
-    readURL: "http://vmselect-vmcluster.observability:8481/select/0/prometheus/"
+    # readURL: "http://vmselect-vmcluster.observability:8481/select/0/prometheus/"
+    readURL: "http://vmsingle-vmsingle-benchmark.observability.svc.cluster.local:8429/"
     # writeBearerToken is an optional bearer token to use when writing data to writeURL.
     writeBearerToken: ""
     # readBearerToken is an optional bearer token to use when querying data from readURL.
@@ -102,6 +104,6 @@ remoteStorages:
     # readHeaders is an optional list of headers in form `header:value`, attached to every read request.
     # multiple headers must be delimited by '^^': 'header1:value1^^header2:value2'
     readHeaders: ""
-  # prom:
-  #   writeURL: "http://prometheus-operated.observability:9090/api/v1/write"
-  #   readURL: "http://prometheus-operated.observability:9090"
+  prom:
+    writeURL: "http://prometheus-operated.observability:9090/api/v1/write"
+    readURL: "http://prometheus-operated.observability:9090"

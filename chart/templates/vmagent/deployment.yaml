@@ -30,11 +30,11 @@ spec:
       {{- end }}
       containers:
       - name: vmagent-config-updater
-        image: "victoriametrics/vmagent-config-updater:v1.1.0"
+        image: "ghcr.io/just1900/vmagent-config-updater:heads-main-0-ge534e7f-dirty-8887bca6"
         args:
         - --httpListenAddr=:8436
-        - --targetsCount={{ $.Values.targetsCount }}
-        - --targetAddr=0.0.0.0:9102
+        # - --targetsCount={{ $.Values.targetsCount }}
+        - --targetAddrMap=0.0.0.0:9102=150,basic-tidb.tidb-admin:10080=50,basic-tikv-0.basic-tikv-peer.tidb-admin:20180=97,basic-pd.tidb-admin:2379=3
         - --scrapeInterval={{ $.Values.scrapeInterval }}
         - --scrapeConfigUpdatePercent={{ $.Values.scrapeConfigUpdatePercent }}
         - --scrapeConfigUpdateInterval={{ $.Values.scrapeConfigUpdateInterval }}
@@ -42,7 +42,6 @@ spec:
         resources:
           requests:
             cpu: 0.5
-            memory: {{ $.Values.writeReplicaMem }}
           limits:
             memory: {{ $.Values.writeReplicaMem }}
         image: "victoriametrics/vmagent:{{ $.Values.vmtag }}"
